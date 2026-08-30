@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ultrashade — Scan the Studio</title>
+<meta name="description" content="Ultrashade Tattoos, Grandview Heights, Columbus — scan to visit, or generate your own studio QR code." />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink: #0c0b0e;
+    --surface: #17151b;
+    --surface-raised: #1e1b23;
+    --brass: #c7a252;
+    --brass-soft: #e3c988;
+    --ember: #7a2331;
+    --paper: #f1ece2;
+    --smoke: #938d99;
+    --hairline: rgba(199,162,82,0.22);
+    --radius-plate: 18px;
+    --focus: 2px solid var(--brass-soft);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(199,162,82,0.08), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 100% 100%, rgba(122,35,49,0.10), transparent 60%);
+    z-index: 0;
+  }
+
+  a{ color: var(--brass-soft); }
+  a:focus-visible, button:focus-visible, input:focus-visible, label:focus-visible{
+    outline: var(--focus);
+    outline-offset: 3px;
+  }
+
+  .wrap{ position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- top bar ---------- */
+  header.bar{
+    display:flex; justify-content: space-between; align-items: baseline;
+    padding: 28px 0 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--smoke);
+  }
+  header.bar .mark{ color: var(--brass-soft); font-weight: 500; }
+
+  /* ---------- hero ---------- */
+  .hero{ padding: 64px 0 8px; text-align: center; }
+  .hero h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: clamp(32px, 7vw, 46px);
+    line-height: 1.15;
+    margin: 0 0 14px;
+    color: var(--paper);
+  }
+  .hero p{
+    margin: 0 auto;
+    max-width: 40ch;
+    color: var(--smoke);
+    font-size: 15px;
+  }
+
+  /* ---------- plate (signature element) ---------- */
+  .plate-stage{
+    display:flex; flex-direction: column; align-items:center;
+    padding: 44px 0 8px;
+    opacity: 0;
+    animation: rise 700ms ease-out forwards 200ms;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .plate{
+    position: relative;
+    padding: 20px;
+    border-radius: var(--radius-plate);
+    background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+    border: 1px solid var(--hairline);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 24px 60px -20px rgba(0,0,0,0.7);
+    transition: box-shadow 500ms ease;
+  }
+  .plate::before{
+    content:"";
+    position:absolute; inset: 6px;
+    border-radius: calc(var(--radius-plate) - 6px);
+    border: 1px solid var(--hairline);
+    pointer-events:none;
+  }
+  .plate:hover, .plate:focus-within{
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 0 42px 2px rgba(199,162,82,0.28), 0 24px 60px -20px rgba(0,0,0,0.7);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .plate-stage{ animation: none; opacity: 1; }
+    .plate{ transition: none; }
+  }
+
+  canvas.qr-canvas{ display:block; border-radius: 6px; }
+
+  .plate-caption{
+    margin-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--smoke);
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+  .plate-caption strong{ color: var(--brass-soft); font-weight: 500; }
+
+  .plate-actions{
+    display:flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content:center;
+  }
+
+  button, .btn{
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 11px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--paper);
+    cursor: pointer;
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+  button.primary{
+    background: var(--brass);
+    border-color: var(--brass);
+    color: #1a1509;
+  }
+  button.primary:hover{ background: var(--brass-soft); border-color: var(--brass-soft); }
+  button:not(.primary):hover{ border-color: var(--brass); }
+  button:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+  .status{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--brass-soft);
+    min-height: 16px;
+    margin-top: 10px;
+    text-align:center;
+  }
+
+  /* ---------- divider ---------- */
+  .divider{
+    display:flex; align-items:center; gap: 14px;
+    margin: 76px 0 40px;
+    color: var(--smoke);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .divider::before, .divider::after{
+    content:""; flex:1; height:1px; background: var(--hairline);
+  }
+
+  /* ---------- generator ---------- */
+  .generator h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 0 0 6px;
+  }
+  .generator > p.lede{
+    color: var(--smoke);
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+
+  .field{ margin-bottom: 16px; }
+  .field label{
+    display:block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--smoke);
+    margin-bottom: 8px;
+  }
+  .field input[type="text"]{
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 13px 14px;
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  .field input[type="text"]::placeholder{ color: #5c5763; }
+
+  .row-check{
+    display:flex; align-items:center; gap: 10px;
+    margin-bottom: 22px;
+  }
+  .row-check input[type="checkbox"]{
+    width: 16px; height: 16px; accent-color: var(--brass);
+  }
+  .row-check label{
+    font-size: 13px; color: var(--paper); cursor:pointer;
+  }
+
+  .upload-row{
+    display:flex; align-items:center; gap: 12px; margin: -8px 0 22px;
+  }
+  .upload-row input[type="file"]{
+    font-size: 12px; color: var(--smoke); max-width: 220px;
+  }
+  .upload-row button.clear{
+    font-size: 11px; padding: 6px 12px; border-radius: 999px;
+  }
+
+  .gen-actions{ display:flex; gap: 10px; margin-bottom: 30px; }
+
+  .gen-output{
+    display:flex; flex-direction:column; align-items:center;
+    min-height: 40px;
+  }
+  .gen-output .plate{ padding: 16px; }
+  .gen-output canvas{ width: 220px; height: 220px; }
+
+  footer{
+    text-align:center;
+    padding: 60px 0 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #56515e;
+    letter-spacing: 0.04em;
+  }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip: rect(0 0 0 0); white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="bar">
+    <span class="mark">Ultrashade</span>
+    <span>Grandview Heights · Columbus, OH</span>
+  </header>
+
+  <section class="hero">
+    <h1>Scan the studio.</h1>
+    <p>One code to everything we've built here — the portfolio, the artists, the booking form.</p>
+  </section>
+
+  <div class="plate-stage">
+    <div class="plate">
+      <canvas id="heroCanvas" class="qr-canvas" width="280" height="280" role="img" aria-label="QR code linking to ultrashadetattoos.com"></canvas>
+    </div>
+    <p class="plate-caption">points to <strong id="heroUrlLabel">ultrashadetattoos.com</strong></p>
+    <div class="plate-actions">
+      <button class="primary" id="downloadHero">Download PNG</button>
+      <button id="copyHero">Copy link</button>
+    </div>
+    <p class="status" id="heroStatus" aria-live="polite"></p>
+  </div>
+
+  <div class="divider">Make your own</div>
+
+  <section class="generator">
+    <h2>Build a new code</h2>
+    <p class="lede">For a flyer, a table tent, a business card — anything that needs its own link.</p>
+
+    <div class="field">
+      <label for="dataInput">Link or text</label>
+      <input type="text" id="dataInput" placeholder="https://…" autocomplete="off" />
+    </div>
+
+    <div class="gen-actions">
+      <button class="primary" id="generateBtn">Generate</button>
+      <button id="downloadGen" disabled>Download PNG</button>
+    </div>
+
+    <div class="gen-output" id="genOutput"></div>
+    <p class="status" id="genStatus" aria-live="polite"></p>
+  </section>
+
+  <footer>Ultrashade Tattoos · 1310 Grandview Ave, Columbus, OH 43212</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var COLORS = {
+    ink: "#ffffff",
+    brass: "#111111",
+    brassSoft: "#111111"
+  };
+
+  var HERO_URL = "https://www.ultrashadetattoos.com";
+
+  function libReady(){ return typeof window.qrcode === "function"; }
+
+  /**
+   * Renders a plain black-on-white QR code onto a canvas with slightly
+   * rounded modules and squared finder patterns.
+   */
+  function renderPlateQR(canvas, data){
+    if(!libReady()){
+      throw new Error("QR library did not load");
+    }
+    if(!data || !data.trim()){
+      throw new Error("Nothing to encode yet");
+    }
+
+    var qr = window.qrcode(0, "H");
+    qr.addData(data);
+    qr.make();
+
+    var count = qr.getModuleCount();
+    var dpr = window.devicePixelRatio || 1;
+    var size = 280;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + "px";
+    canvas.style.height = size + "px";
+
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, size, size);
+
+    var quiet = 2; // modules of quiet zone
+    var cell = size / (count + quiet * 2);
+    var offset = quiet * cell;
+
+    ctx.fillStyle = COLORS.ink;
+    ctx.fillRect(0, 0, size, size);
+
+    function isFinder(r, c){
+      var f = count - 7;
+      return (r < 7 && c < 7) || (r < 7 && c >= f) || (r >= f && c < 7);
+    }
+
+    // data modules — plain rounded squares, minimal gap
+    ctx.fillStyle = COLORS.brass;
+    for(var r = 0; r < count; r++){
+      for(var c = 0; c < count; c++){
+        if(!qr.isDark(r, c)) continue;
+        if(isFinder(r, c)) continue;
+        var x = offset + c * cell;
+        var y = offset + r * cell;
+        var pad = cell * 0.08;
+        roundRect(ctx, x + pad, y + pad, cell - pad * 2, cell - pad * 2, (cell - pad * 2) / 5);
+        ctx.fill();
+      }
+    }
+
+    // finder patterns — simple ring + center square, no extra rings
+    var finderOrigins = [
+      [0, 0],
+      [0, count - 7],
+      [count - 7, 0]
+    ];
+    finderOrigins.forEach(function(pos){
+      var fr = pos[0], fc = pos[1];
+      var x = offset + fc * cell;
+      var y = offset + fr * cell;
+      var outer = cell * 7;
+      var inner = cell * 3;
+
+      ctx.fillStyle = COLORS.brass;
+      roundRect(ctx, x, y, outer, outer, cell * 1.2);
+      ctx.fill();
+
+      ctx.fillStyle = COLORS.ink;
+      roundRect(ctx, x + cell, y + cell, cell * 5, cell * 5, cell * 0.9);
+      ctx.fill();
+
+      ctx.fillStyle = COLORS.brass;
+      roundRect(ctx, x + cell * 2, y + cell * 2, inner, inner, cell * 0.6);
+      ctx.fill();
+    });
+
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    if(w < 2*r) r = w/2;
+    if(h < 2*r) r = h/2;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function downloadCanvas(canvas, filename){
+    var link = document.createElement("a");
+    link.download = filename;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  function setStatus(el, msg, isError){
+    el.textContent = msg || "";
+    el.style.color = isError ? "#e08a8a" : "";
+  }
+
+  function boot(){
+    // ---- hero plate ----
+    var heroCanvas = document.getElementById("heroCanvas");
+    var heroStatus = document.getElementById("heroStatus");
+    document.getElementById("heroUrlLabel").textContent = HERO_URL.replace(/^https?:\/\/(www\.)?/, "");
+
+    try{
+      renderPlateQR(heroCanvas, HERO_URL);
+    }catch(e){
+      setStatus(heroStatus, "Couldn't load the QR engine — check your connection and reload.", true);
+    }
+
+    document.getElementById("downloadHero").addEventListener("click", function(){
+      downloadCanvas(heroCanvas, "ultrashade-qr.png");
+    });
+    document.getElementById("copyHero").addEventListener("click", function(){
+      navigator.clipboard.writeText(HERO_URL).then(function(){
+        setStatus(heroStatus, "Link copied.");
+        setTimeout(function(){ setStatus(heroStatus, ""); }, 2000);
+      }).catch(function(){
+        setStatus(heroStatus, HERO_URL);
+      });
+    });
+
+    // ---- generator ----
+    var dataInput = document.getElementById("dataInput");
+    var generateBtn = document.getElementById("generateBtn");
+    var downloadGen = document.getElementById("downloadGen");
+    var genOutput = document.getElementById("genOutput");
+    var genStatus = document.getElementById("genStatus");
+
+    var genCanvas = null;
+
+    function doGenerate(){
+      var value = dataInput.value.trim();
+      if(!value){
+        setStatus(genStatus, "Type a link or some text first.", true);
+        return;
+      }
+
+      genOutput.innerHTML = '<div class="plate"><canvas class="qr-canvas"></canvas></div>';
+      genCanvas = genOutput.querySelector("canvas");
+
+      try{
+        renderPlateQR(genCanvas, value);
+        setStatus(genStatus, "");
+        downloadGen.disabled = false;
+      }catch(e){
+        setStatus(genStatus, e.message || "Something went wrong generating that code.", true);
+        downloadGen.disabled = true;
+      }
+    }
+
+    generateBtn.addEventListener("click", doGenerate);
+    dataInput.addEventListener("keydown", function(e){
+      if(e.key === "Enter") doGenerate();
+    });
+
+    downloadGen.addEventListener("click", function(){
+      if(genCanvas) downloadCanvas(genCanvas, "qr-code.png");
+    });
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", boot);
+  }else{
+    boot();
+  }
+})();
+</script>
+
+</body>
+</html>
