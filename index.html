@@ -14,12 +14,12 @@
     --ink: #0c0b0e;
     --surface: #17151b;
     --surface-raised: #1e1b23;
-    --brass: #c7a252;
-    --brass-soft: #e3c988;
+    --brass: #ffffff;
+    --brass-soft: #ffffff;
     --ember: #7a2331;
     --paper: #f1ece2;
     --smoke: #938d99;
-    --hairline: rgba(199,162,82,0.22);
+    --hairline: rgba(255,255,255,0.20);
     --radius-plate: 18px;
     --focus: 2px solid var(--brass-soft);
   }
@@ -41,7 +41,7 @@
     inset: 0;
     pointer-events: none;
     background:
-      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(199,162,82,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,0.05), transparent 60%),
       radial-gradient(ellipse 50% 35% at 100% 100%, rgba(122,35,49,0.10), transparent 60%);
     z-index: 0;
   }
@@ -113,7 +113,7 @@
     pointer-events:none;
   }
   .plate:hover, .plate:focus-within{
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 0 42px 2px rgba(199,162,82,0.28), 0 24px 60px -20px rgba(0,0,0,0.7);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 0 42px 2px rgba(255,255,255,0.22), 0 24px 60px -20px rgba(0,0,0,0.7);
   }
   @media (prefers-reduced-motion: reduce){
     .plate-stage{ animation: none; opacity: 1; }
@@ -152,7 +152,7 @@
   button.primary{
     background: var(--brass);
     border-color: var(--brass);
-    color: #1a1509;
+    color: var(--ink);
   }
   button.primary:hover{ background: var(--brass-soft); border-color: var(--brass-soft); }
   button:not(.primary):hover{ border-color: var(--brass); }
@@ -277,9 +277,9 @@
 
   <div class="plate-stage">
     <div class="plate">
-      <canvas id="heroCanvas" class="qr-canvas" width="280" height="280" role="img" aria-label="QR code linking to ultrashadetattoos.com"></canvas>
+      <canvas id="heroCanvas" class="qr-canvas" width="280" height="280" role="img" aria-label="QR code to submit a request at ultrashadetattoos.com/request-form"></canvas>
     </div>
-    <p class="plate-caption">points to <strong id="heroUrlLabel">ultrashadetattoos.com</strong></p>
+    <p class="plate-caption">Submit a Request</p>
     <div class="plate-actions">
       <button class="primary" id="downloadHero">Download PNG</button>
       <button id="copyHero">Copy link</button>
@@ -287,11 +287,11 @@
     <p class="status" id="heroStatus" aria-live="polite"></p>
   </div>
 
-  <div class="divider">Make your own</div>
+  <div class="divider">Need a different code?</div>
 
   <section class="generator">
-    <h2>Build a new code</h2>
-    <p class="lede">For a flyer, a table tent, a business card — anything that needs its own link.</p>
+    <h2>Generate a new QR code</h2>
+    <p class="lede">For anything the code above doesn't cover — a different link, a flyer, a table tent.</p>
 
     <div class="field">
       <label for="dataInput">Link or text</label>
@@ -321,7 +321,7 @@
     brassSoft: "#111111"
   };
 
-  var HERO_URL = "https://www.ultrashadetattoos.com";
+  var HERO_URL = "https://ultrashadetattoos.com/request-form";
 
   function libReady(){ return typeof window.qrcode === "function"; }
 
@@ -374,12 +374,12 @@
         var x = offset + c * cell;
         var y = offset + r * cell;
         var pad = cell * 0.08;
-        roundRect(ctx, x + pad, y + pad, cell - pad * 2, cell - pad * 2, (cell - pad * 2) / 5);
+        roundRect(ctx, x + pad, y + pad, cell - pad * 2, cell - pad * 2, (cell - pad * 2) * 0.12);
         ctx.fill();
       }
     }
 
-    // finder patterns — simple ring + center square, no extra rings
+    // finder patterns — near-square ring + center, matching a fine-line look
     var finderOrigins = [
       [0, 0],
       [0, count - 7],
@@ -393,18 +393,17 @@
       var inner = cell * 3;
 
       ctx.fillStyle = COLORS.brass;
-      roundRect(ctx, x, y, outer, outer, cell * 1.2);
+      roundRect(ctx, x, y, outer, outer, cell * 0.25);
       ctx.fill();
 
       ctx.fillStyle = COLORS.ink;
-      roundRect(ctx, x + cell, y + cell, cell * 5, cell * 5, cell * 0.9);
+      roundRect(ctx, x + cell, y + cell, cell * 5, cell * 5, cell * 0.18);
       ctx.fill();
 
       ctx.fillStyle = COLORS.brass;
-      roundRect(ctx, x + cell * 2, y + cell * 2, inner, inner, cell * 0.6);
+      roundRect(ctx, x + cell * 2, y + cell * 2, inner, inner, cell * 0.12);
       ctx.fill();
     });
-
   }
 
   function roundRect(ctx, x, y, w, h, r){
@@ -435,7 +434,6 @@
     // ---- hero plate ----
     var heroCanvas = document.getElementById("heroCanvas");
     var heroStatus = document.getElementById("heroStatus");
-    document.getElementById("heroUrlLabel").textContent = HERO_URL.replace(/^https?:\/\/(www\.)?/, "");
 
     try{
       renderPlateQR(heroCanvas, HERO_URL);
@@ -444,7 +442,7 @@
     }
 
     document.getElementById("downloadHero").addEventListener("click", function(){
-      downloadCanvas(heroCanvas, "ultrashade-qr.png");
+      downloadCanvas(heroCanvas, "ultrashade-request-form-qr.png");
     });
     document.getElementById("copyHero").addEventListener("click", function(){
       navigator.clipboard.writeText(HERO_URL).then(function(){
