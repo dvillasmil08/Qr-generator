@@ -1,3 +1,6 @@
+# Used AI
+I oped Claude to use a python project I had created following a Udemy course which then led to moving it all to HTML as I can run for free on a URL and save it on my desktop on my phone. 
+
 # ultrashade-qr
 
 A static QR code site for **Ultrashade Tattoos** (Grandview Heights, Columbus, OH).
